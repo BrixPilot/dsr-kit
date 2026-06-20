@@ -12,7 +12,7 @@ import {
   hashContent,
   proofRecordBody,
 } from "@dsr-kit/core";
-import { createDsrHandler, type DsrRequest } from "@dsr-kit/next";
+import { createDsrHandler, type DsrRequest } from "@dsr-kit/nextjs";
 import { exampleDataMap } from "./data-map";
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };

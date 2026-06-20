@@ -101,7 +101,7 @@ dsr-kit ships as npm workspace packages. In a **Next.js App Router + Prisma + Po
 ### 1. Install packages
 
 ```bash
-npm install @dsr-kit/core @dsr-kit/adapter-prisma @dsr-kit/next
+npm install @dsr-kit/core @dsr-kit/adapter-prisma @dsr-kit/nextjs
 # optional processor connectors
 npm install @dsr-kit/connector-stripe @dsr-kit/connector-resend
 ```
@@ -180,7 +180,7 @@ Connectors are no-ops in dry-run mode — outbound API calls only happen on exec
 
 ```typescript
 // lib/dsr/handlers.ts
-import { createDsrHandler } from "@dsr-kit/next";
+import { createDsrHandler } from "@dsr-kit/nextjs";
 import { createStripeConnector } from "@dsr-kit/connector-stripe";
 import { createResendConnector } from "@dsr-kit/connector-resend";
 import { adapter } from "./adapter";
@@ -248,7 +248,7 @@ Compare your data map against your Prisma schema so undeclared personal-data col
 | `@dsr-kit/adapter-prisma` | Prisma + Postgres adapter |
 | `@dsr-kit/connector-stripe` | Stripe customer erasure (billing RETAIN where required) |
 | `@dsr-kit/connector-resend` | Resend suppression-only limits demo (not full erasure) |
-| `@dsr-kit/next` | Next.js App Router handlers |
+| `@dsr-kit/nextjs` | Next.js App Router handlers |
 
 ## Reference implementation
 

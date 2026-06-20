@@ -32,7 +32,7 @@ Initial release.
 - `@dsr-kit/adapter-prisma` — Prisma + Postgres adapter
 - `@dsr-kit/connector-stripe` — Stripe reference connector
 - `@dsr-kit/connector-resend` — Resend reference connector
-- `@dsr-kit/next` — Next.js App Router handlers with identity hook
+- `@dsr-kit/nextjs` — Next.js App Router handlers with identity hook
 - Example app with full erasure/export/proof demo
 - Coverage check CLI
 - CI workflow

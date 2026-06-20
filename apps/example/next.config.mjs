@@ -5,7 +5,7 @@ const nextConfig = {
     "@dsr-kit/adapter-prisma",
     "@dsr-kit/connector-stripe",
     "@dsr-kit/connector-resend",
-    "@dsr-kit/next",
+    "@dsr-kit/nextjs",
   ],
 };
 
