@@ -1,6 +1,6 @@
 {
   "name": "@dsr-kit/core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Auditable GDPR data subject rights for Next.js + Prisma — right-to-erasure, access/export, and tamper-evident proof-of-compliance.",
   "keywords": [
     "gdpr",

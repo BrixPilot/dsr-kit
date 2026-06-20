@@ -31,7 +31,7 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@dsr-kit/core": "0.1.0"
+    "@dsr-kit/core": "^0.1.0"
   },
   "devDependencies": {
     "typescript": "^5.9.3",
