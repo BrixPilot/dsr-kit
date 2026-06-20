@@ -1,0 +1,29 @@
+{
+  "name": "dsr-kit",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @dsr-kit/core && npm run build -w @dsr-kit/adapter-prisma && npm run build -w @dsr-kit/connector-stripe && npm run build -w @dsr-kit/connector-resend && npm run build -w @dsr-kit/next",
+    "test": "npm run test -w @dsr-kit/core && npm run test -w @dsr-kit/adapter-prisma && npm run test -w @dsr-kit/connector-stripe && npm run test -w @dsr-kit/connector-resend && npm run test -w @dsr-kit/next",
+    "lint": "npm run lint -w @dsr-kit/core && npm run lint -w @dsr-kit/adapter-prisma && npm run lint -w @dsr-kit/connector-stripe && npm run lint -w @dsr-kit/connector-resend && npm run lint -w @dsr-kit/next",
+    "dev:example": "npm run dev -w @dsr-kit/example",
+    "coverage": "npm run coverage -w @dsr-kit/example"
+  },
+  "author": "MurDaD",
+  "license": "Apache-2.0",
+  "description": "GDPR Data Subject Rights Kit — erasure, export, and proof-of-compliance for Next.js + Prisma apps",
+  "devDependencies": {
+    "@types/node": "^26.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.61.1",
+    "@typescript-eslint/parser": "^8.61.1",
+    "eslint": "^10.5.0",
+    "turbo": "^2.9.18",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.9"
+  },
+  "packageManager": "npm@10.0.0"
+}

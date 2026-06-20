@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  name      String
+  createdAt DateTime  @default(now())
+  profile   Profile?
+  orders    Order[]
+  sessions  Session[]
+}
+
+model Profile {
+  id       String @id @default(cuid())
+  userId   String @unique
+  bio      String?
+  phone    String?
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id        String   @id @default(cuid())
+  userId    String
+  product   String
+  amount    Float
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Invoice {
+  id        String   @id @default(cuid())
+  userId    String
+  amount    Float
+  taxId     String?
+  issuedAt  DateTime @default(now())
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model DsrProof {
+  id                   String   @id @default(cuid())
+  requestType          String
+  subjectIdHash        String
+  timestamp            DateTime
+  perModelOutcomes     Json
+  perProcessorOutcomes Json
+  retainedItems        Json
+  operator             String?
+  prevHash             String?
+  contentHash          String
+}
+
+model DsrRequest {
+  id          String    @id @default(cuid())
+  type        String
+  subjectHash String
+  status      String
+  deadlineAt  DateTime
+  fulfilledAt DateTime?
+  proofId     String?
+  createdAt   DateTime  @default(now())
+}

@@ -1,0 +1,52 @@
+# --- Dependencies ---
+node_modules/
+
+# --- Build outputs (packages + example app) ---
+dist/
+.next/
+out/
+build/
+*.tsbuildinfo
+
+# --- Monorepo / tooling caches ---
+.turbo/
+.cache/
+.vite/
+
+# --- Test & coverage ---
+coverage/
+
+# --- Environment & secrets ---
+.env
+.env.*
+!.env.example
+
+# --- Logs ---
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- OS files ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# --- IDE (keep shared editor config if present) ---
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+*.swo
+
+# --- Prisma local artifacts ---
+*.db
+*.db-journal
+
+# --- Deploy / hosting ---
+.vercel
+
+# --- Accidental nested repos (monorepo root is the only git root) ---
+apps/.git/
