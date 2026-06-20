@@ -61,6 +61,8 @@ model DsrProof {
   operator             String?
   prevHash             String?
   contentHash          String
+
+  @@index([subjectIdHash, id])
 }
 
 model DsrRequest {

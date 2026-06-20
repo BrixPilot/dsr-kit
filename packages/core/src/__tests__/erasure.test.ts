@@ -1,11 +1,15 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { defineDataMap } from "../data-map.js";
 import { runErasure } from "../erasure.js";
 import { InMemoryProofStore } from "../proof.js";
+import { createProcessorRegistry } from "../connector.js";
 import type { StorageAdapter } from "../adapter.js";
 import type { ErasureAction, SubjectId } from "../types.js";
 
-function createMockAdapter(store: Record<string, Record<string, unknown>[]>): StorageAdapter {
+function createMockAdapter(
+  store: Record<string, Record<string, unknown>[]>,
+  spies?: { deleteCalls: number; redactCalls: number },
+): StorageAdapter {
   return {
     async introspectSchema() {
       return {
@@ -19,6 +23,7 @@ function createMockAdapter(store: Record<string, Record<string, unknown>[]>): St
       return (store[model] ?? []).filter((r) => r.userId === subject.value).length;
     },
     async deleteBySubject(subject: SubjectId, model: string) {
+      if (spies) spies.deleteCalls++;
       const before = store[model]?.length ?? 0;
       store[model] = (store[model] ?? []).filter((r) => r.userId !== subject.value);
       return { affected: before - store[model].length, retained: 0 };
@@ -28,6 +33,7 @@ function createMockAdapter(store: Record<string, Record<string, unknown>[]>): St
       model: string,
       fields: Record<string, ErasureAction>,
     ) {
+      if (spies) spies.redactCalls++;
       let affected = 0;
       for (const row of store[model] ?? []) {
         if (row.userId !== subject.value) continue;
@@ -110,5 +116,91 @@ describe("runErasure", () => {
       { mode: "execute" },
     );
     expect(second.models.every((m) => m.status === "skipped" || m.affected === 0)).toBe(true);
+  });
+
+  it("dry-run performs zero adapter mutations", async () => {
+    const store = {
+      User: [{ id: "1", userId: "u1", email: "a@b.com", name: "A" }],
+    };
+    const spies = { deleteCalls: 0, redactCalls: 0 };
+    const adapter = createMockAdapter(store, spies);
+    await runErasure({ dataMap, adapter }, { key: "userId", value: "u1" });
+    expect(spies.deleteCalls).toBe(0);
+    expect(spies.redactCalls).toBe(0);
+  });
+
+  it("dry-run passes dry-run mode to processors without execute calls", async () => {
+    const map = defineDataMap({
+      subjectKey: "userId",
+      models: { User: { action: "DELETE" } },
+      processors: ["stripe"],
+    });
+    const erase = vi.fn(async (_subject, mode) => ({
+      processorId: "stripe",
+      action: "erase" as const,
+      status: mode === "dry-run" ? ("planned" as const) : ("completed" as const),
+    }));
+    const processors = createProcessorRegistry([
+      {
+        id: "stripe",
+        capabilities: () => ({ erase: true, export: false }),
+        erase,
+        export: async () => null,
+      },
+    ]);
+    await runErasure(
+      { dataMap: map, adapter: createMockAdapter({}), processors },
+      { key: "userId", value: "u1" },
+    );
+    expect(erase).toHaveBeenCalledTimes(1);
+    expect(erase).toHaveBeenCalledWith({ key: "userId", value: "u1" }, "dry-run");
+  });
+
+  it("runs processor erasure outside the DB transaction callback", async () => {
+    let inTransaction = false;
+    let processorDuringTransaction = false;
+    const adapter: StorageAdapter = {
+      ...(createMockAdapter({
+        User: [{ id: "1", userId: "u1", email: "a@b.com", name: "A" }],
+      }) as StorageAdapter),
+      async transaction<T>(fn: () => Promise<T>) {
+        inTransaction = true;
+        try {
+          return await fn();
+        } finally {
+          inTransaction = false;
+        }
+      },
+    };
+    const erase = vi.fn(async () => {
+      processorDuringTransaction = inTransaction;
+      return {
+        processorId: "stripe",
+        action: "erase" as const,
+        status: "completed" as const,
+      };
+    });
+    const map = defineDataMap({
+      subjectKey: "userId",
+      models: { User: { action: "DELETE" } },
+      processors: ["stripe"],
+    });
+    await runErasure(
+      {
+        dataMap: map,
+        adapter,
+        processors: createProcessorRegistry([
+          {
+            id: "stripe",
+            capabilities: () => ({ erase: true, export: false }),
+            erase,
+            export: async () => null,
+          },
+        ]),
+      },
+      { key: "userId", value: "u1" },
+      { mode: "execute" },
+    );
+    expect(processorDuringTransaction).toBe(false);
   });
 });

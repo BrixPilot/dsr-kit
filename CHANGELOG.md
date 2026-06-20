@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Fixed
+
+- Proof hash chains are **per-subject** (not one global chain) with serialized append
+  (`SubjectMutex` + Serializable Prisma transactions) — prevents concurrent fork of tamper-evidence
+- README CI badge and clone URL point at `BrixPilot/dsr-kit`
+- `docs/GUARANTEES-AND-LIMITS.md` no longer claims v0.2 step-ledger resumability in v0.1
+
+### Added
+
+- Tests: proof-chain concurrency, dry-run zero-mutation, processor dry-run, processors outside DB txn
+- README "Tests and CI" section
+
 ### Breaking
 
 - Renamed erasure action `ANONYMIZE` → `REDACT` (pseudonymization, not legal anonymization)

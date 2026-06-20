@@ -30,6 +30,6 @@
     "typescript": "^5.9.3",
     "@prisma/client": "^6.0.0",
     "prisma": "^6.0.0",
-    "vitest": "^4.1.9"
+    "vitest": "3.2.4"
   }
 }

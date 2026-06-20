@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { defineDataMap, getSubjectLinkField } from "../data-map.js";
 import { checkCoverage } from "../coverage.js";
 import { buildErasurePlan, getDeletionOrder } from "../relation-graph.js";
-import { InMemoryProofStore } from "../proof.js";
 import { DataMapError } from "../errors.js";
 
 describe("defineDataMap", () => {
@@ -93,28 +92,5 @@ describe("getSubjectLinkField", () => {
     });
     expect(getSubjectLinkField(map, "User")).toBe("id");
     expect(getSubjectLinkField(map, "Order")).toBe("userId");
-  });
-});
-
-describe("proof store", () => {
-  it("maintains hash chain integrity", async () => {
-    const store = new InMemoryProofStore();
-    await store.append({
-      requestType: "erasure",
-      subjectIdHash: "abc",
-      timestamp: new Date().toISOString(),
-      perModelOutcomes: [],
-      perProcessorOutcomes: [],
-      retainedItems: [],
-    });
-    await store.append({
-      requestType: "erasure",
-      subjectIdHash: "def",
-      timestamp: new Date().toISOString(),
-      perModelOutcomes: [],
-      perProcessorOutcomes: [],
-      retainedItems: [],
-    });
-    expect(store.verifyChain()).toBe(true);
   });
 });

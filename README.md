@@ -2,7 +2,7 @@
 
 **GDPR Data Subject Rights Kit** — auditable erasure, access/export, and proof-of-compliance for Next.js + Prisma apps.
 
-[![CI](https://github.com/MurDaD/dsr-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/MurDaD/dsr-kit/actions/workflows/ci.yml)
+[![CI](https://github.com/BrixPilot/dsr-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/BrixPilot/dsr-kit/actions/workflows/ci.yml)
 
 > **This is not legal advice.** dsr-kit provides engineering tooling to help implement GDPR data subject rights workflows. Consult qualified counsel for compliance obligations specific to your organization.
 >
@@ -15,7 +15,7 @@
 - **Correct cascades** — relation-aware deletion order; delete vs redact vs retain
 - **Legal-hold / retention** — RETAIN items are never deleted; reason recorded in proof
 - **Processor propagation** — pluggable connectors; erasure never deletes data you are legally required to keep
-- **Tamper-evident proof** — hash-chained records with no raw PII
+- **Tamper-evident proof** — per-subject hash chains with serialized append; no raw PII
 - **Post-erasure verification** — re-scan fails loudly if personal data residue remains on mapped primary-store fields
 - **Identity gate** — erasure/export blocked until integrator confirms requester identity
 - **Coverage check** — build/test warns on undeclared personal-data columns (structural, not semantic)
@@ -32,8 +32,19 @@
 - Auto-erasure outside declared paths — coverage is **primary store + registered processors**; logs, caches, search, analytics/warehouse, and backups/replicas are declarable but not auto-erased
 - Semantic PII detection — the coverage check is **structural** (model/column names), not content-aware; it will not see PII inside JSON/text columns
 - Prove every copy is gone — verification covers the **mapped primary-store surface only**
+- **Resume across crashes** — v0.1 has no durable step ledger; a mid-run failure may leave partial deletion without proof (see [Guarantees §7](docs/GUARANTEES-AND-LIMITS.md#7-atomicity-crashes-and-resumability-v01-limit))
 
 Full limits: [docs/GUARANTEES-AND-LIMITS.md](docs/GUARANTEES-AND-LIMITS.md)
+
+## Tests and CI
+
+Destructive paths are covered by Vitest suites in `packages/*` (dry-run zero-mutation, per-subject proof-chain concurrency, RETAIN, idempotent re-run, processor dry-run). Run locally:
+
+```bash
+npm run build && npm test
+```
+
+CI runs the same on push via [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (Postgres service + full package test matrix).
 
 ## GDPR article mapping
 
@@ -50,7 +61,7 @@ The repo includes a runnable example at [`apps/example`](apps/example) — a Nex
 
 ```bash
 # 1. Clone and install
-git clone https://github.com/MurDaD/dsr-kit.git && cd dsr-kit
+git clone git@github.com:BrixPilot/dsr-kit.git && cd dsr-kit
 npm install
 
 # 2. Start Postgres

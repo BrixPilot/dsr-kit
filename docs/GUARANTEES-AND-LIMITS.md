@@ -25,14 +25,12 @@ connectors**, and only for data described in your data map, dsr-kit guarantees:
   referential integrity is preserved.
 - **Honored retention.** `RETAIN` items are never deleted; the reason (`legalBasis`) is recorded
   in the proof.
-- **Durable, resumable execution.** Each request expands into a persisted step ledger; a crash
-  mid-run is resumable, and re-runs are idempotent (anchored to step state, never to re-reading
-  data values).
-- **Contemporaneous, tamper-evident proof.** Proof is derived from the *completed* ledger and
-  hash-chained per subject, so it cannot assert a deletion that did not occur. It contains no raw
-  personal data.
+- **Per-subject tamper-evident proof.** Proof records are hash-chained **per subject** (not one
+  global chain), appended under per-subject serialization, and contain no raw personal data.
 - **Scoped verification.** After execution, the mapped non-`RETAIN` surface in the primary store
   is re-scanned; residue causes a loud failure, not a silent pass.
+- **Idempotent re-runs (best effort).** Re-executing erasure converges toward the declared end
+  state when rows are already deleted or redacted — but see §7 for crash limits.
 
 ---
 
@@ -119,13 +117,21 @@ consequences:
 
 ---
 
-## 7. Atomicity and consistency
+## 7. Atomicity, crashes, and resumability (v0.1 limit)
 
 Local database changes and external processor calls **cannot be atomic** — you cannot roll back a
-third-party deletion inside a database transaction. dsr-kit uses a durable step ledger (a saga):
-database steps run in per-model transactions; processor steps run outside any transaction and are
-idempotent. The system is **eventually consistent and resumable**, not transactionally atomic
-across the boundary. A partially failed run leaves a resumable ledger, not a silent inconsistency.
+third-party deletion inside a database transaction. In v0.1:
+
+- **Primary-store steps** run inside a per-request database transaction (all mapped models in one
+  transaction callback).
+- **Processor steps** run **after** that transaction completes (verified in tests).
+
+**There is no durable step ledger in v0.1.** If a run crashes after some models are deleted or
+after Stripe is called but before proof is written, there is no persisted checkpoint to resume
+from — only a partial deletion and a possible proof gap. Re-running erasure is idempotent at the
+row level (already-deleted rows are skipped), but that is not the same as saga-style resumability.
+Treat v0.1 as suitable for controlled execution; do not rely on it for crash-safe, auditable
+recovery until a step ledger lands in a future release.
 
 ---
 

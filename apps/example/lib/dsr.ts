@@ -3,12 +3,14 @@ import { createPrismaAdapter } from "@dsr-kit/adapter-prisma";
 import { createStripeConnector } from "@dsr-kit/connector-stripe";
 import { createResendConnector } from "@dsr-kit/connector-resend";
 import {
+  SubjectMutex,
   type ProofRecord,
   type ProofStore,
   type RequestRecord,
   type RequestStore,
   chainProofHash,
   hashContent,
+  proofRecordBody,
 } from "@dsr-kit/core";
 import { createDsrHandler, type DsrRequest } from "@dsr-kit/next";
 import { exampleDataMap } from "./data-map";
@@ -17,10 +19,13 @@ const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 export const prisma = globalForPrisma.prisma ?? new PrismaClient();
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
+const proofAppendMutex = new SubjectMutex();
+
 class PrismaProofStore implements ProofStore {
-  async getLastHash(): Promise<string | null> {
+  async getLastHash(subjectIdHash: string): Promise<string | null> {
     const last = await prisma.dsrProof.findFirst({
-      orderBy: { timestamp: "desc" },
+      where: { subjectIdHash },
+      orderBy: { id: "desc" },
     });
     return last?.contentHash ?? null;
   }
@@ -28,42 +33,45 @@ class PrismaProofStore implements ProofStore {
   async append(
     partial: Omit<ProofRecord, "id" | "prevHash" | "contentHash">,
   ): Promise<ProofRecord> {
-    const prevHash = await this.getLastHash();
-    const body = {
-      requestType: partial.requestType,
-      subjectIdHash: partial.subjectIdHash,
-      timestamp: partial.timestamp,
-      perModelOutcomes: partial.perModelOutcomes,
-      perProcessorOutcomes: partial.perProcessorOutcomes,
-      retainedItems: partial.retainedItems,
-      operator: partial.operator,
-    };
-    const contentHash = hashContent(body);
-    const record = await prisma.dsrProof.create({
-      data: {
-        requestType: partial.requestType,
-        subjectIdHash: partial.subjectIdHash,
-        timestamp: new Date(partial.timestamp),
-        perModelOutcomes: partial.perModelOutcomes,
-        perProcessorOutcomes: partial.perProcessorOutcomes,
-        retainedItems: partial.retainedItems,
-        operator: partial.operator,
-        prevHash,
-        contentHash: chainProofHash(prevHash, contentHash),
-      },
-    });
-    return {
-      id: record.id,
-      requestType: record.requestType as ProofRecord["requestType"],
-      subjectIdHash: record.subjectIdHash,
-      timestamp: record.timestamp.toISOString(),
-      perModelOutcomes: record.perModelOutcomes as ProofRecord["perModelOutcomes"],
-      perProcessorOutcomes: record.perProcessorOutcomes as ProofRecord["perProcessorOutcomes"],
-      retainedItems: record.retainedItems as ProofRecord["retainedItems"],
-      operator: record.operator ?? undefined,
-      prevHash: record.prevHash,
-      contentHash: record.contentHash,
-    };
+    return proofAppendMutex.run(partial.subjectIdHash, () =>
+      prisma.$transaction(
+        async (tx) => {
+          const last = await tx.dsrProof.findFirst({
+            where: { subjectIdHash: partial.subjectIdHash },
+            orderBy: { id: "desc" },
+          });
+          const prevHash = last?.contentHash ?? null;
+          const contentHash = hashContent(proofRecordBody(partial));
+          const record = await tx.dsrProof.create({
+            data: {
+              requestType: partial.requestType,
+              subjectIdHash: partial.subjectIdHash,
+              timestamp: new Date(partial.timestamp),
+              perModelOutcomes: partial.perModelOutcomes,
+              perProcessorOutcomes: partial.perProcessorOutcomes,
+              retainedItems: partial.retainedItems,
+              operator: partial.operator,
+              prevHash,
+              contentHash: chainProofHash(prevHash, contentHash),
+            },
+          });
+          return {
+            id: record.id,
+            requestType: record.requestType as ProofRecord["requestType"],
+            subjectIdHash: record.subjectIdHash,
+            timestamp: record.timestamp.toISOString(),
+            perModelOutcomes: record.perModelOutcomes as ProofRecord["perModelOutcomes"],
+            perProcessorOutcomes:
+              record.perProcessorOutcomes as ProofRecord["perProcessorOutcomes"],
+            retainedItems: record.retainedItems as ProofRecord["retainedItems"],
+            operator: record.operator ?? undefined,
+            prevHash: record.prevHash,
+            contentHash: record.contentHash,
+          };
+        },
+        { isolationLevel: "Serializable" },
+      ),
+    );
   }
 
   async getById(id: string) {
@@ -88,7 +96,7 @@ class PrismaProofStore implements ProofStore {
   }
 
   async list() {
-    const rows = await prisma.dsrProof.findMany({ orderBy: { timestamp: "asc" } });
+    const rows = await prisma.dsrProof.findMany({ orderBy: { id: "asc" } });
     return rows.map((r) => ({
       id: r.id,
       requestType: r.requestType as ProofRecord["requestType"],
@@ -148,7 +156,7 @@ class PrismaRequestStore implements RequestStore {
     };
   }
 
-  async get(id) {
+  async get(id: string) {
     const r = await prisma.dsrRequest.findUnique({ where: { id } });
     if (!r) return null;
     return {
@@ -175,6 +183,7 @@ export const dsrHandlers = createDsrHandler({
   requestStore,
   processors: [
     createStripeConnector({ secretKey: process.env.STRIPE_SECRET_KEY }),
+    // Suppression-only limits demo — not equivalent to Stripe erasure (see docs/GUARANTEES-AND-LIMITS.md)
     createResendConnector({ apiKey: process.env.RESEND_API_KEY }),
   ],
   identityVerify: async (req) => {
