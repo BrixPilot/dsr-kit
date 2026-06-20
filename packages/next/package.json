@@ -1,7 +1,18 @@
 {
   "name": "@dsr-kit/next",
   "version": "0.1.0",
-  "description": "Next.js App Router handlers for dsr-kit DSR requests",
+  "description": "Next.js App Router handlers for dsr-kit GDPR data subject rights — erasure, export, proof, and a fail-closed identity gate.",
+  "keywords": [
+    "gdpr",
+    "nextjs",
+    "next",
+    "app-router",
+    "data-subject-rights",
+    "dsr",
+    "dsar",
+    "right-to-erasure",
+    "dsr-kit"
+  ],
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",

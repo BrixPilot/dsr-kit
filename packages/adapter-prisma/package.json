@@ -1,7 +1,17 @@
 {
   "name": "@dsr-kit/adapter-prisma",
   "version": "0.1.0",
-  "description": "Prisma + Postgres storage adapter for dsr-kit",
+  "description": "Prisma + Postgres storage adapter for dsr-kit GDPR data subject rights (erasure, redaction, retention).",
+  "keywords": [
+    "gdpr",
+    "data-subject-rights",
+    "right-to-erasure",
+    "prisma",
+    "postgres",
+    "dsr-kit",
+    "adapter",
+    "data-deletion"
+  ],
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",

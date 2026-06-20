@@ -1,7 +1,17 @@
 {
   "name": "@dsr-kit/connector-stripe",
   "version": "0.1.0",
-  "description": "Stripe processor connector for dsr-kit",
+  "description": "Stripe processor connector for dsr-kit — GDPR erasure that respects financial-record retention.",
+  "keywords": [
+    "gdpr",
+    "stripe",
+    "data-erasure",
+    "right-to-erasure",
+    "processor",
+    "retention",
+    "dsr-kit",
+    "compliance"
+  ],
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",

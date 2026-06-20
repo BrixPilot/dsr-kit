@@ -1,7 +1,16 @@
 {
   "name": "@dsr-kit/connector-resend",
   "version": "0.1.0",
-  "description": "Resend processor connector for dsr-kit",
+  "description": "Resend processor connector for dsr-kit — contact suppression for GDPR erasure workflows.",
+  "keywords": [
+    "gdpr",
+    "resend",
+    "suppression",
+    "processor",
+    "data-subject-rights",
+    "dsr-kit",
+    "privacy"
+  ],
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",

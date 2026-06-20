@@ -13,9 +13,20 @@
     "dev:example": "npm run dev -w @dsr-kit/example",
     "coverage": "npm run coverage -w @dsr-kit/example"
   },
+  "description": "GDPR data subject rights toolkit (erasure, access/export, hash-chained proof) for Next.js + Prisma apps.",
   "author": "MurDaD",
   "license": "Apache-2.0",
-  "description": "GDPR Data Subject Rights Kit — erasure, export, and proof-of-compliance for Next.js + Prisma apps",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BrixPilot/dsr-kit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/BrixPilot/dsr-kit/issues"
+  },
+  "homepage": "https://github.com/BrixPilot/dsr-kit#readme",
+  "engines": {
+    "node": ">=20"
+  },
   "devDependencies": {
     "@types/node": "22.15.29",
     "@typescript-eslint/eslint-plugin": "8.32.1",
@@ -23,8 +34,5 @@
     "eslint": "9.28.0",
     "typescript": "5.8.3",
     "vitest": "3.2.4"
-  },
-  "engines": {
-    "node": ">=20"
   }
 }
